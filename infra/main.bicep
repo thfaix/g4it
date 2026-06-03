@@ -204,21 +204,25 @@ var jdbcBase = 'jdbc:postgresql://${pgFqdn}:5432'
 var jdbcParams = 'sslmode=require&reWriteBatchedInserts=true'
 var dbUrlMain = '${jdbcBase}/postgres?${jdbcParams}'
 
-// Key Vault secret references reused across apps.
+// DB/Keycloak passwords are passed directly as ACA secrets, NOT Key Vault references: the
+// vault is private-endpoint-only, and ACA secret-reference resolution can't reach it, timing
+// out at app creation (ADR-007). The values come from the secure deploy params and are also
+// seeded into Key Vault for reference/rotation; the backend still reads other secrets (the
+// per-org storage connection string) from Key Vault at runtime over the private endpoint.
 var dbPasswordSecretRef = [
   {
     name: 'db-password'
-    keyVaultUrl: '${vaultUri}secrets/db-password'
+    value: postgresAdminPassword
   }
 ]
 var keycloakSecretRefs = [
   {
     name: 'db-password'
-    keyVaultUrl: '${vaultUri}secrets/db-password'
+    value: postgresAdminPassword
   }
   {
     name: 'keycloak-admin-password'
-    keyVaultUrl: '${vaultUri}secrets/keycloak-admin-password'
+    value: keycloakAdminPassword
   }
 ]
 

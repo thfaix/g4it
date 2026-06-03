@@ -44,7 +44,7 @@ param maxReplicas int = 3
 @description('Environment variables: [{ name, value } | { name, secretRef }].')
 param env array = []
 
-@description('Key Vault secret references: [{ name, keyVaultUrl }].')
+@description('Secrets: Key Vault refs [{ name, keyVaultUrl }] or plain values [{ name, value }].')
 param secrets array = []
 
 @description('Workload profile name.')
@@ -78,7 +78,10 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         }
       ]
       secrets: [
-        for s in secrets: {
+        for s in secrets: contains(s, 'value') ? {
+          name: s.name
+          value: s.value
+        } : {
           name: s.name
           keyVaultUrl: s.keyVaultUrl
           identity: identityId
