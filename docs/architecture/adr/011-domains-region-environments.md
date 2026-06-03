@@ -98,4 +98,5 @@ custom domain names (plan open decision #4).
 - `docs/azure-deployment-plan.md` §1, §4 (frontend/CSP/CORS), §7 step 10, open decision #4
 - `services/frontend/nginx/25-inject-env-var.sh`, `services/frontend/nginx/nginx.conf`
 - Related: [ADR-001](001-container-hosting-azure-container-apps.md),
-  [ADR-008](008-identity-provider-keycloak.md)
+  [ADR-008](008-identity-provider-keycloak.md),
+  [ADR-013](013-frontend-csp-runtime-configurable.md)

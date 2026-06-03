@@ -68,6 +68,11 @@ authenticates with managed identity. **Open validation item**: confirm the `comm
 Blob implementation is complete for *all* read/write/retention/export paths used by loading,
 evaluation, and export before go-live; close any gaps found.
 
+**Correction**: the backend does not access Blob directly via managed identity as implied
+above — it resolves a per-organization storage **connection string from Key Vault** and uses a
+`g4it`-prefixed container. That mechanism is decided in
+[ADR-014](014-backend-storage-authentication.md), which refines this ADR.
+
 ## Consequences
 
 ### Positive
@@ -91,4 +96,5 @@ evaluation, and export before go-live; close any gaps found.
 - `services/backend/src/main/resources/application-azure.yml`,
   `services/backend/.../common/filesystem`
 - Related: [ADR-007](007-secrets-key-vault-managed-identity.md),
-  [ADR-009](009-networking-vnet-private-endpoints.md)
+  [ADR-009](009-networking-vnet-private-endpoints.md),
+  [ADR-014](014-backend-storage-authentication.md)

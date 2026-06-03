@@ -115,6 +115,7 @@ ADRs below capture the architectural decisions in the Azure containerized deploy
 |---|-------|--------|------|---------|
 | [005](005-container-registry-and-external-images.md) | Container registry (ACR) and external image sourcing | Proposed | 2026-06-03 | ACR as the single registry; import the 6 external images so deploys are self-contained |
 | [006](006-observability-log-analytics-app-insights.md) | Observability with Log Analytics and Application Insights | Proposed | 2026-06-03 | Azure Monitor as the native ACA log sink plus backend tracing/health |
+| [012](012-numecoeval-image-sourcing.md) | NumEcoEval container image sourcing | Proposed | 2026-06-03 | Mirror the 4 NumEcoEval images from the French-gov GitLab registry into ACR, pinned to tag 2-2-0 |
 
 ### Data and Integration
 
@@ -122,6 +123,7 @@ ADRs below capture the architectural decisions in the Azure containerized deploy
 |---|-------|--------|------|---------|
 | [003](003-relational-database-postgresql-flexible-server.md) | Relational database on PostgreSQL Flexible Server | Proposed | 2026-06-03 | Managed PostgreSQL 15 (vs DB container) for backups/HA; keeps `postgres` + `keycloak` DBs |
 | [004](004-file-storage-azure-blob.md) | Backend file storage on Azure Blob Storage | Proposed | 2026-06-03 | Use the existing `azure` profile + Blob starter for durable, replica-shared file storage |
+| [014](014-backend-storage-authentication.md) | Backend↔storage authentication (per-org connection string in Key Vault) | Proposed | 2026-06-03 | Keep the implemented connection-string-from-Key-Vault model (refines ADR-004); MI blob deferred |
 
 ### Security and Access
 
@@ -130,6 +132,7 @@ ADRs below capture the architectural decisions in the Azure containerized deploy
 | [007](007-secrets-key-vault-managed-identity.md) | Secrets in Key Vault via user-assigned Managed Identity | Proposed | 2026-06-03 | Store secrets in Key Vault; credential-less ACR/KV/Blob access via managed identity |
 | [008](008-identity-provider-keycloak.md) | Keep Keycloak as the identity provider | Proposed | 2026-06-03 | Retain containerized Keycloak (vs Entra ID) to avoid auth re-architecture; single always-on replica |
 | [009](009-networking-vnet-private-endpoints.md) | VNet-injected ACA env with private endpoints | Proposed | 2026-06-03 | Keep internal services and the data plane off the public internet via private endpoints |
+| [013](013-frontend-csp-runtime-configurable.md) | Runtime-configurable frontend CSP for cross-origin backend/Keycloak | Proposed | 2026-06-03 | Template the nginx CSP at container start from injected env so connect-src/frame-src match per-env FQDNs |
 
 ### Operations
 

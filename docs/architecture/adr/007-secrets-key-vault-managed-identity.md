@@ -91,6 +91,22 @@ is unavailable (e.g. local dev).
 - The default `admin/password` could ship to an environment — *mitigation*: set the Keycloak
   admin password from Key Vault at deploy time (see [ADR-008](008-identity-provider-keycloak.md)).
 
+## Update (2026-06-03): Key Vault authentication mechanism resolved
+
+Closing the open item on managed identity vs. client secret:
+
+- On ACA the backend authenticates to Key Vault with the **user-assigned managed identity**.
+  The deployment sets `AZURE_CLIENT_ID` to the identity's client id and
+  `SPRING_CLOUD_AZURE_CREDENTIAL_MANAGED_IDENTITY_ENABLED=true` (spring-cloud-azure 5.22.0
+  supports user-assigned managed identity).
+- `services/backend/src/main/resources/application-azure.yml` currently templates
+  `keyvault.credential.client-id`/`client-secret`. For managed identity the **client secret
+  must be optional** — a required config edit so an empty `AZURE_CLIENT_SECRET` does not force
+  secret-based auth. The `AZURE_CLIENT_ID/SECRET` service-principal path remains the documented
+  fallback (e.g. local dev outside Azure). This is config-only; no logic change.
+- The **Blob data plane is not** accessed via this identity — it uses a connection string
+  resolved from Key Vault per organization (see [ADR-014](014-backend-storage-authentication.md)).
+
 ## References
 
 - `docs/azure-deployment-plan.md` §3, §4 (config), §7 (sequence, role assignments)
@@ -98,4 +114,5 @@ is unavailable (e.g. local dev).
   `spring-cloud-azure-starter-keyvault`
 - Related: [ADR-004](004-file-storage-azure-blob.md),
   [ADR-005](005-container-registry-and-external-images.md),
-  [ADR-008](008-identity-provider-keycloak.md)
+  [ADR-008](008-identity-provider-keycloak.md),
+  [ADR-014](014-backend-storage-authentication.md)

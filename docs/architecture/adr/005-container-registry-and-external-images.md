@@ -93,4 +93,5 @@ before importing the four images.
 - `docs/azure-deployment-plan.md` §5 (images & registry), open decision #2
 - `services/{frontend,backend,keycloak}/Dockerfile`; `pom.xml` NumEcoEval repository
 - Related: [ADR-007](007-secrets-key-vault-managed-identity.md),
-  [ADR-010](010-cicd-github-actions-oidc.md)
+  [ADR-010](010-cicd-github-actions-oidc.md),
+  [ADR-012](012-numecoeval-image-sourcing.md)

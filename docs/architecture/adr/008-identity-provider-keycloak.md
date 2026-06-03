@@ -88,6 +88,23 @@ ADR.
 - Single replica is a SPOF — *mitigation*: rely on ACA restart + Flexible Server durability;
   introduce clustered multi-replica only if availability requirements demand it.
 
+## Update (2026-06-03): Keycloak hostname/proxy env resolved
+
+Concrete production config for the Bitnami Keycloak 26.0.7 image behind ACA ingress (TLS
+terminated at the edge), wired in `infra/main.bicep`:
+
+- `KEYCLOAK_PRODUCTION=true`
+- `KEYCLOAK_PROXY=edge` (TLS terminated upstream; trust forwarded headers)
+- `KEYCLOAK_HOSTNAME=https://<keycloak-fqdn>/auth` — the single stable public FQDN used by
+  **both browser and backend** (satisfies the `iss` validation constraint)
+- `KEYCLOAK_HTTP_RELATIVE_PATH=/auth/`, `KEYCLOAK_HTTP_PORT=8180`
+- DB pointed at the Flexible Server `keycloak` database with `KEYCLOAK_JDBC_PARAMS=sslmode=require`
+- Admin password from Key Vault ([ADR-007](007-secrets-key-vault-managed-identity.md)) via
+  `KEYCLOAK_ADMIN_PASSWORD` — the compose default `admin/password` is not used
+
+Verify these env names against the Bitnami 26.0.7 image contract before go-live (Bitnami exposes
+both its `KEYCLOAK_*` wrappers and the underlying `KC_*` variables).
+
 ## References
 
 - `docs/azure-deployment-plan.md` §4 (Keycloak config), §1 (`iss` gotcha), open decision #3
