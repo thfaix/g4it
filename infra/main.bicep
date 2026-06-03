@@ -226,13 +226,16 @@ var keycloakSecretRefs = [
   }
 ]
 
-// Common NumEcoEval datasource env.
+// Common NumEcoEval datasource env. Hikari pool is capped so the combined pools of all
+// services fit the shared Postgres max_connections (ADR-003); B1ms is small.
 var numEcoEvalDbEnv = [
   { name: 'SERVER_PORT', value: '8080' }
   { name: 'MANAGEMENT_SERVER_PORT', value: '8080' }
   { name: 'SPRING_DATASOURCE_URL', value: dbUrlMain }
   { name: 'SPRING_DATASOURCE_USERNAME', value: postgresAdminLogin }
   { name: 'SPRING_DATASOURCE_PASSWORD', secretRef: 'db-password' }
+  { name: 'SPRING_DATASOURCE_HIKARI_MAXIMUMPOOLSIZE', value: '5' }
+  { name: 'SPRING_DATASOURCE_HIKARI_MINIMUMIDLE', value: '1' }
 ]
 
 // ---------------------------------------------------------------------------
@@ -420,6 +423,10 @@ module keycloak 'modules/container-app.bicep' = {
       { name: 'KEYCLOAK_DATABASE_USER', value: postgresAdminLogin }
       { name: 'KEYCLOAK_DATABASE_PASSWORD', secretRef: 'db-password' }
       { name: 'KEYCLOAK_JDBC_PARAMS', value: 'sslmode=require' }
+      // Cap Keycloak's DB pool so it doesn't exhaust the shared Postgres max_connections (ADR-003).
+      { name: 'KC_DB_POOL_MAX_SIZE', value: '10' }
+      { name: 'KC_DB_POOL_INITIAL_SIZE', value: '2' }
+      { name: 'KC_DB_POOL_MIN_SIZE', value: '2' }
       { name: 'KEYCLOAK_HTTP_RELATIVE_PATH', value: '/auth/' }
       { name: 'KEYCLOAK_HTTP_PORT', value: '8180' }
       { name: 'KEYCLOAK_BIND_ADDRESS', value: '0.0.0.0' }

@@ -48,6 +48,9 @@ param databases array = [
   'keycloak'
 ]
 
+@description('max_connections (static parameter — applied on server restart). B1ms default is 50.')
+param maxConnections int = 100
+
 resource server 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: name
   location: location
@@ -88,6 +91,18 @@ resource db 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2024-08-01' = [
     }
   }
 ]
+
+// Raise max_connections for the shared dev DB. Static parameter — takes effect on restart.
+// dependsOn the databases so the change isn't applied concurrently with other server ops.
+resource maxConnectionsConfig 'Microsoft.DBforPostgreSQL/flexibleServers/configurations@2024-08-01' = {
+  parent: server
+  name: 'max_connections'
+  properties: {
+    value: string(maxConnections)
+    source: 'user-override'
+  }
+  dependsOn: [db]
+}
 
 output fqdn string = server.properties.fullyQualifiedDomainName
 output name string = server.name
