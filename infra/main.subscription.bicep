@@ -42,7 +42,7 @@ param organizationName string = 'DEMO'
 param dataPlanePublicAccess string = 'Disabled'
 
 param imageTag string = 'latest'
-param numEcoEvalTag string = 'latest'
+param numEcoEvalTag string = '2-2-0'
 param deployEcomind bool = false
 
 param frontendCustomFqdn string = ''
