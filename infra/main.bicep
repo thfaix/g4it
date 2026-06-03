@@ -67,7 +67,9 @@ param backendImageRepository string = 'g4it/backend'
 param frontendImageRepository string = 'g4it/frontend'
 param keycloakImageRepository string = 'g4it/keycloak'
 param numEcoEvalRepositoryPrefix string = 'numecoeval'
-param numEcoEvalTag string = 'latest'
+// Pinned in lock-step with the backend's org.mte.numecoeval:calculs version (ADR-012);
+// imported into ACR by infra/scripts/import-external-images.sh.
+param numEcoEvalTag string = '2-2-0'
 param boaviztaImageRepository string = 'boavizta/boaviztapi'
 param boaviztaImageTag string = '1.3.10'
 param ecomindImageRepository string = 'ecomind/ecomindai'

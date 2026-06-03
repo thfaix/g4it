@@ -98,7 +98,7 @@ the backend reaches the NumEcoEval/Boavizta apps by their ACA app name over inte
 | `postgresAdminPassword` / `keycloakAdminPassword` | (env var) | secrets, stored in Key Vault |
 | `organizationName` | `DEMO` | name of the Key Vault secret holding the storage connection string (see below) |
 | `dataPlanePublicAccess` | `Disabled` | flip to `Enabled` for a quick public dev env |
-| `imageTag` / `numEcoEvalTag` | `latest` | image tags pulled from ACR |
+| `imageTag` / `numEcoEvalTag` | `latest` / `2-2-0` | image tags pulled from ACR (NumEcoEval pinned per [ADR-012](../docs/architecture/adr/012-numecoeval-image-sourcing.md)) |
 | `deployEcomind` | `false` | deploy the optional Ecomind AI app |
 | `*CustomFqdn` | `''` | custom domains; empty = ACA default domain ([ADR-011](../docs/architecture/adr/011-domains-region-environments.md)) |
 | `postgresSku*` / `postgresHighAvailability` | Burstable / off | right-size per environment |
@@ -108,21 +108,23 @@ the backend reaches the NumEcoEval/Boavizta apps by their ACA app name over inte
 These are configuration/validation items the IaC cannot settle on its own — tracked in the plan
 and ADRs:
 
-1. **NumEcoEval images** — confirm the registry, tags, and license, then `az acr import` the four
-   images so the `numecoeval/*` references resolve ([ADR-005], plan open #2).
-2. **Frontend CSP/CORS** — widen `connect-src` in `services/frontend/nginx/nginx.conf` to the
-   backend + Keycloak FQDNs; the backend `CORS_ALLOWED_ORIGINS` is already set to the frontend
-   URL ([ADR-011], plan open #4). **Required edit.**
+1. **NumEcoEval images** — import is scripted in [`scripts/import-external-images.sh`](scripts/import-external-images.sh)
+   (`az acr import` of the four `numecoeval/*` images pinned to `2-2-0`, plus Boavizta) so the ACR
+   references resolve ([ADR-005], [ADR-012]). **Remaining:** confirm the image license permits
+   mirroring before running it (plan open #2).
+2. **Frontend CSP/CORS** — the nginx `connect-src`/`frame-src` are now templated at container start
+   from `URL_INVENTORY`/`KEYCLOAK_URL` ([ADR-013]) and `CORS_ALLOWED_ORIGINS` is set to the frontend
+   URL. **Remaining:** validate the login→inventory flow against the rendered CSP in the go-live
+   smoke test ([ADR-011], plan open #4).
 3. **Blob via Key Vault** — the backend resolves a per-organization **storage connection string**
    from Key Vault (`AzureFileSystem`/`VaultAccessClient`) and lists the `g4it`-prefixed container.
    This deployment seeds that secret (name = `organizationName`, uppercased, `_`→`-`). Confirm the
    organization name matches your seed data and that all read/write/retention paths work
    ([ADR-004], plan open #5).
-4. **Managed identity for Key Vault** — `application-azure.yml` templates
-   `AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET`. This deployment sets `AZURE_CLIENT_ID` to the
-   user-assigned identity and `SPRING_CLOUD_AZURE_CREDENTIAL_MANAGED_IDENTITY_ENABLED=true`;
-   verify the Spring Cloud Azure config honors managed identity (no client secret) at runtime
-   ([ADR-007]).
+4. **Managed identity for Key Vault** — `application-azure.yml` now makes `AZURE_CLIENT_SECRET`
+   optional, and this deployment sets `AZURE_CLIENT_ID` to the user-assigned identity plus
+   `SPRING_CLOUD_AZURE_CREDENTIAL_MANAGED_IDENTITY_ENABLED=true` ([ADR-007]). **Remaining:** verify
+   the backend acquires a Key Vault token via managed identity (no client secret) at runtime.
 5. **Keycloak proxy/hostname env** — `KEYCLOAK_PROXY=edge` / `KEYCLOAK_HOSTNAME` are set for the
    Bitnami 26.0.7 image; verify against that image's env-var contract, and ensure the single
    stable public FQDN is used for both browser and backend (the `iss` constraint, [ADR-008]).
@@ -132,3 +134,5 @@ and ADRs:
 [ADR-007]: ../docs/architecture/adr/007-secrets-key-vault-managed-identity.md
 [ADR-008]: ../docs/architecture/adr/008-identity-provider-keycloak.md
 [ADR-011]: ../docs/architecture/adr/011-domains-region-environments.md
+[ADR-012]: ../docs/architecture/adr/012-numecoeval-image-sourcing.md
+[ADR-013]: ../docs/architecture/adr/013-frontend-csp-runtime-configurable.md

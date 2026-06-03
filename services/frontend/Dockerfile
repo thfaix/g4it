@@ -18,7 +18,8 @@ USER root
 
 RUN chmod a+rwx -R /usr/share/nginx/html \
     && chmod a+x /docker-entrypoint.d/25-inject-env-var.sh \
-    && chown -R nginx:nginx /var/cache/nginx
+    && chown -R nginx:nginx /var/cache/nginx \
+    && chown nginx:nginx /etc/nginx/nginx.conf
 
 CMD ["nginx", "-g", "daemon off;"]
 
