@@ -72,6 +72,32 @@ az deployment sub create \
 
 Preview first with `--what-if` (append to either command).
 
+### ⚠️ Keep the Keycloak admin password stable across deploys
+
+Keycloak bootstraps its admin user **only once** (first start against an empty DB) from
+`KEYCLOAK_ADMIN_PASSWORD`; it never updates that password on later starts. If a deploy passes a
+*different* `keycloakAdminPassword` than the one Keycloak first booted with, the ACA secret
+drifts from the stored password and **admin login breaks** (the value in the secret is no longer
+the one Keycloak accepts). The Postgres password can rotate safely (server + secret update
+together), but the Keycloak admin password **must not change** between deploys.
+
+Use the idempotent wrapper, which reuses the already-deployed password from the ACA secrets and
+only falls back to the env vars on the first deploy:
+
+```bash
+# First deploy: set the env vars once (strong, and then keep them).
+export G4IT_KEYCLOAK_ADMIN_PASSWORD='<stable-strong-password>'
+export G4IT_PG_ADMIN_PASSWORD='<stable-strong-password>'
+./infra/scripts/deploy.sh rg-g4it-dev northeurope
+# Subsequent deploys: env vars optional — existing secrets are reused automatically.
+./infra/scripts/deploy.sh rg-g4it-dev northeurope
+```
+
+After a deploy to a **fresh** environment, also run the post-deploy steps:
+`scripts/import-external-images.sh` (mirror images), `scripts/configure-keycloak-redirects.sh`
+(register the frontend redirect URI), and set a password for the realm's `admin@g4it.com` user
+(the realm export ships it hashed) via the Keycloak admin console or admin API.
+
 ## What gets deployed
 
 | Resource | Module | Notes |
