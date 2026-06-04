@@ -17,7 +17,7 @@ param dataPlanePublicAccess = 'Disabled'
 
 param imageTag = 'latest'
 param numEcoEvalTag = 'latest'
-param deployEcomind = false
+param deployEcomind = true
 
 param postgresSkuName = 'Standard_B1ms'
 param postgresSkuTier = 'Burstable'

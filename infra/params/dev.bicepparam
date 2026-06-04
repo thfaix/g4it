@@ -16,7 +16,7 @@ param dataPlanePublicAccess = 'Disabled'
 
 param imageTag = 'latest'
 param numEcoEvalTag = 'latest'
-param deployEcomind = false
+param deployEcomind = true
 
 // Dev sizing — small, no HA (ADR-003).
 param postgresSkuName = 'Standard_B1ms'

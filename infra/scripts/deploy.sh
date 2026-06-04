@@ -51,11 +51,17 @@ reuse_or_env() {  # $1=container-app  $2=secret-name  $3=env-var-name
 KCPASS=$(reuse_or_env keycloak       keycloak-admin-password G4IT_KEYCLOAK_ADMIN_PASSWORD)
 PGPASS=$(reuse_or_env g4it-backend   db-password             G4IT_PG_ADMIN_PASSWORD)
 
-echo "Deploying '${DEPLOYMENT_NAME}' to ${RG} (${LOCATION})..."
+# Ecomind AI is an opt-in module (template default is off). This dev env runs it (see
+# infra/params/*.bicepparam) — pass it explicitly since this wrapper overrides params inline
+# rather than reading the bicepparam file. Override with DEPLOY_ECOMIND=false to turn it off.
+DEPLOY_ECOMIND="${DEPLOY_ECOMIND:-true}"
+
+echo "Deploying '${DEPLOYMENT_NAME}' to ${RG} (${LOCATION}), deployEcomind=${DEPLOY_ECOMIND}..."
 az deployment sub create \
   --name "${DEPLOYMENT_NAME}" \
   --location "${LOCATION}" \
   --template-file "${TEMPLATE}" \
   --parameters location="${LOCATION}" \
                postgresAdminPassword="${PGPASS}" \
-               keycloakAdminPassword="${KCPASS}"
+               keycloakAdminPassword="${KCPASS}" \
+               deployEcomind="${DEPLOY_ECOMIND}"

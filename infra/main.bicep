@@ -441,6 +441,14 @@ module keycloak 'modules/container-app.bicep' = {
   }
 }
 
+// When the optional Ecomind AI app is deployed, point the backend's AI-model connectors at
+// it (defaults are localhost:8000 in application.yml — unreachable across ACA apps). The
+// ecomind-api app has internal ingress on port 8000, reachable by name on the ACA env.
+var backendEcomindEnv = deployEcomind ? [
+  { name: 'AIMODELCONFIGAPI_BASEURL', value: 'http://ecomind-api' }
+  { name: 'AIMODELESTIMATIONAPI_BASEURL', value: 'http://ecomind-api' }
+] : []
+
 module backend 'modules/container-app.bicep' = {
   name: backendName
   params: {
@@ -459,7 +467,7 @@ module backend 'modules/container-app.bicep' = {
     minReplicas: 1
     maxReplicas: 5
     secrets: dbPasswordSecretRef
-    env: [
+    env: concat([
       { name: 'SPRING_PROFILES_ACTIVE', value: 'azure,postgres' }
       { name: 'SPRING_DATASOURCE_URL', value: dbUrlMain }
       { name: 'SPRING_DATASOURCE_USERNAME', value: postgresAdminLogin }
@@ -490,7 +498,7 @@ module backend 'modules/container-app.bicep' = {
       { name: 'AZURE_CLIENT_ID', value: identity.outputs.clientId }
       { name: 'SPRING_CLOUD_AZURE_CREDENTIAL_MANAGED_IDENTITY_ENABLED', value: 'true' }
       { name: 'SPRING_CLOUD_AZURE_KEYVAULT_SECRET_ENDPOINT', value: vaultUri }
-    ]
+    ], backendEcomindEnv)
   }
 }
 

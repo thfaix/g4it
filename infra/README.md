@@ -94,9 +94,11 @@ export G4IT_PG_ADMIN_PASSWORD='<stable-strong-password>'
 ```
 
 After a deploy to a **fresh** environment, also run the post-deploy steps:
-`scripts/import-external-images.sh` (mirror images), `scripts/configure-keycloak-redirects.sh`
-(register the frontend redirect URI), and set a password for the realm's `admin@g4it.com` user
-(the realm export ships it hashed) via the Keycloak admin console or admin API.
+`scripts/import-external-images.sh` (mirror images — add `--include-ecomind` when `deployEcomind=true`),
+`scripts/configure-keycloak-redirects.sh` (register the frontend redirect URI), and set a password
+for the realm's `admin@g4it.com` user (the realm export ships it hashed) via the Keycloak admin
+console or admin API. The Ecomind module also has to be enabled per organization (the `ecomindai`
+flag on the org, toggled by a super-admin); the global module flags ship enabled.
 
 ## What gets deployed
 
@@ -110,7 +112,7 @@ After a deploy to a **fresh** environment, also run the post-deploy steps:
 | Storage account + `g4it` container | `storage` | backend file storage |
 | PostgreSQL Flexible Server | `postgres` | `postgres` + `keycloak` databases, VNet-integrated |
 | ACA managed environment | `aca-environment` | Consumption profile, VNet-injected |
-| 10 container apps | `container-app` ×N | 3 external (frontend/backend/keycloak), 7 internal |
+| 10 container apps | `container-app` ×N | 3 external (frontend/backend/keycloak), 7 internal (+1 internal `ecomind-api` when `deployEcomind`) |
 
 The data plane (Postgres, Key Vault, Blob) is private by default (`dataPlanePublicAccess: Disabled`);
 the backend reaches the NumEcoEval/Boavizta apps by their ACA app name over internal ingress.
@@ -125,7 +127,7 @@ the backend reaches the NumEcoEval/Boavizta apps by their ACA app name over inte
 | `organizationName` | `DEMO` | name of the Key Vault secret holding the storage connection string (see below) |
 | `dataPlanePublicAccess` | `Disabled` | flip to `Enabled` for a quick public dev env |
 | `imageTag` / `numEcoEvalTag` | `latest` / `2-2-0` | image tags pulled from ACR (NumEcoEval pinned per [ADR-012](../docs/architecture/adr/012-numecoeval-image-sourcing.md)) |
-| `deployEcomind` | `false` | deploy the optional Ecomind AI app |
+| `deployEcomind` | `false` | deploy the optional Ecomind AI app and wire the backend's `AIMODELCONFIGAPI_BASEURL`/`AIMODELESTIMATIONAPI_BASEURL` to it; requires importing the image with `import-external-images.sh --include-ecomind` |
 | `*CustomFqdn` | `''` | custom domains; empty = ACA default domain ([ADR-011](../docs/architecture/adr/011-domains-region-environments.md)) |
 | `postgresSku*` / `postgresHighAvailability` | Burstable / off | right-size per environment |
 
