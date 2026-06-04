@@ -65,7 +65,15 @@
                                 }
                             ],
                             "outputHashing": "all",
-                            "index": "src/index.prod.html"
+                            "index": "src/index.prod.html",
+                            "optimization": {
+                                "scripts": true,
+                                "styles": {
+                                    "minify": true,
+                                    "inlineCritical": false
+                                },
+                                "fonts": true
+                            }
                         },
                         "development": {
                             "optimization": false,
