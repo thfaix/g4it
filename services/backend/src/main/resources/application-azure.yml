@@ -7,6 +7,9 @@ spring:
       keyvault:
         credential:
           client-id: ${AZURE_CLIENT_ID}
-          client-secret: ${AZURE_CLIENT_SECRET}
+          # Optional: empty when authenticating with the user-assigned managed identity on
+          # Azure (SPRING_CLOUD_AZURE_CREDENTIAL_MANAGED_IDENTITY_ENABLED=true). The client
+          # secret is only set for the service-principal fallback (e.g. local dev). See ADR-007.
+          client-secret: ${AZURE_CLIENT_SECRET:}
         secret:
           endpoint: ${SPRING_CLOUD_AZURE_KEYVAULT_SECRET_ENDPOINT}
