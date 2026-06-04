@@ -518,6 +518,9 @@ module frontend 'modules/container-app.bicep' = {
       { name: 'URL_INVENTORY', value: 'https://${backendFqdn}/' }
       { name: 'FRONTEND_URL', value: 'https://${frontendFqdn}' }
       { name: 'SUB_PATH_FRONT', value: '/' }
+      // environment.prod.ts templates subpath: "${SUBPATH}". It must be injected (empty for a
+      // root deployment) or it leaks the literal "${SUBPATH}" into APP_BASE_HREF (-> /${SUBPATH}).
+      { name: 'SUBPATH', value: '' }
       { name: 'BASE_HREF', value: '/' }
       { name: 'MATOMO_TAG_MANAGER_URL', value: '' }
     ]
