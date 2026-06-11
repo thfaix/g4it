@@ -35,8 +35,8 @@ param postgresAdminPassword string
 @description('Keycloak bootstrap admin password.')
 param keycloakAdminPassword string
 
-@description('Default organization name (Key Vault secret holding the storage connection string).')
-param organizationName string = 'DEMO'
+@description('Organization names the backend serves; each gets a Key Vault storage-connection-string secret. Must match the org names seeded in the DB (ADR-004/014).')
+param organizationNames array = [ 'SOPRA-STERIA-GROUP', 'SUBSCRIBER-DEMO' ]
 
 @allowed([ 'Enabled', 'Disabled' ])
 param dataPlanePublicAccess string = 'Disabled'
@@ -70,7 +70,7 @@ module stack 'main.bicep' = {
     tags: tags
     postgresAdminPassword: postgresAdminPassword
     keycloakAdminPassword: keycloakAdminPassword
-    organizationName: organizationName
+    organizationNames: organizationNames
     dataPlanePublicAccess: dataPlanePublicAccess
     imageTag: imageTag
     numEcoEvalTag: numEcoEvalTag

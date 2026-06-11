@@ -4,9 +4,11 @@
 // Seeded secrets:
 //   - db-password               : Postgres admin password (backend + keycloak)
 //   - keycloak-admin-password   : Keycloak bootstrap admin password
-//   - <ORGANIZATION>            : storage connection string for the default organization.
+//   - <ORGANIZATION> (one each) : storage connection string, seeded per organization name.
 //     The backend's AzureFileSystem fetches this by organization name (uppercased, '_'->'-')
-//     and then lists the 'g4it'-prefixed blob container (see VaultAccessClient).
+//     and then lists the 'g4it'-prefixed blob container (see VaultAccessClient). Each org the
+//     backend serves must have a matching secret or its storage access 404s (org->secret name
+//     must match the seeded org names in the DB).
 
 @description('Globally-unique Key Vault name (3-24 chars).')
 param name string
@@ -41,15 +43,14 @@ param dbPassword string
 @description('Keycloak bootstrap admin password.')
 param keycloakAdminPassword string
 
-@description('Default organization name; used as the secret name (uppercased, "_"->"-").')
-param organizationName string
+@description('Organization names the backend serves; one storage-connection-string secret is seeded per name (uppercased, "_"->"-").')
+param organizationNames array
 
 @description('Name of the storage account whose connection string is stored for the org.')
 param storageAccountName string
 
 // Built-in role: Key Vault Secrets User
 var secretsUserRoleId = '4633458b-17de-408a-b874-0445c86b69e6'
-var organizationSecretName = toUpper(replace(organizationName, '_', '-'))
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
   name: storageAccountName
@@ -101,13 +102,13 @@ resource keycloakAdminSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
-resource organizationConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource organizationConnectionStringSecrets 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = [for org in organizationNames: {
   parent: vault
-  name: organizationSecretName
+  name: toUpper(replace(org, '_', '-'))
   properties: {
     value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccountName};AccountKey=${storageAccount.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
   }
-}
+}]
 
 resource privateEndpoint 'Microsoft.Network/privateEndpoints@2024-01-01' = {
   name: '${name}-pe'

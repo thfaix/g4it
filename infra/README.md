@@ -124,7 +124,7 @@ the backend reaches the NumEcoEval/Boavizta apps by their ACA app name over inte
 | `location` | — | Azure region |
 | `namePrefix` / `environmentName` | `g4it` / `dev` | naming + tags |
 | `postgresAdminPassword` / `keycloakAdminPassword` | (env var) | secrets, stored in Key Vault |
-| `organizationName` | `DEMO` | name of the Key Vault secret holding the storage connection string (see below) |
+| `organizationNames` | `[SOPRA-STERIA-GROUP, SUBSCRIBER-DEMO]` | org names the backend serves; one Key Vault storage-connection-string secret is seeded per name. Must match the org names in the DB or storage access 404s (see below) |
 | `dataPlanePublicAccess` | `Disabled` | flip to `Enabled` for a quick public dev env |
 | `imageTag` / `numEcoEvalTag` | `latest` / `2-2-0` | image tags pulled from ACR (NumEcoEval pinned per [ADR-012](../docs/architecture/adr/012-numecoeval-image-sourcing.md)) |
 | `deployEcomind` | `false` | deploy the optional Ecomind AI app and wire the backend's `AIMODELCONFIGAPI_BASEURL`/`AIMODELESTIMATIONAPI_BASEURL` to it; requires importing the image with `import-external-images.sh --include-ecomind` |
@@ -146,9 +146,11 @@ and ADRs:
    smoke test ([ADR-011], plan open #4).
 3. **Blob via Key Vault** — the backend resolves a per-organization **storage connection string**
    from Key Vault (`AzureFileSystem`/`VaultAccessClient`) and lists the `g4it`-prefixed container.
-   This deployment seeds that secret (name = `organizationName`, uppercased, `_`→`-`). Confirm the
-   organization name matches your seed data and that all read/write/retention paths work
-   ([ADR-004], plan open #5).
+   This deployment seeds one secret **per `organizationNames` entry** (uppercased, `_`→`-`). These
+   must match the org names seeded in the DB (`g4it_subscriber.name`) or that org's storage access
+   404s (a daily `SecretNotFound` from the storage-retention cron). The internal `--INTERNAL-G4IT--`
+   pseudo-org uses local image storage and is **not** a valid KV secret name — its KV miss is a
+   benign app-level quirk, not seeded here ([ADR-004], plan open #5).
 4. **Managed identity for Key Vault** — `application-azure.yml` now makes `AZURE_CLIENT_SECRET`
    optional, and this deployment sets `AZURE_CLIENT_ID` to the user-assigned identity plus
    `SPRING_CLOUD_AZURE_CREDENTIAL_MANAGED_IDENTITY_ENABLED=true` ([ADR-007]). **Remaining:** verify

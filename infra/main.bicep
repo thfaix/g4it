@@ -53,7 +53,9 @@ param keycloakAdminPassword string
 
 // Blob / organization
 @description('Default organization name; used as the Key Vault secret holding the storage connection string (uppercased, "_"->"-").')
-param organizationName string = 'DEMO'
+// Organization names the backend serves; each gets a Key Vault storage-connection-string
+// secret. Must match the org names seeded in the DB or storage access 404s (ADR-004/014).
+param organizationNames array = [ 'SOPRA-STERIA-GROUP', 'SUBSCRIBER-DEMO' ]
 @description('Blob container name (must start with "g4it").')
 param blobContainerName string = 'g4it'
 
@@ -148,7 +150,7 @@ module keyvault 'modules/keyvault.bicep' = {
     publicNetworkAccess: dataPlanePublicAccess
     dbPassword: postgresAdminPassword
     keycloakAdminPassword: keycloakAdminPassword
-    organizationName: organizationName
+    organizationNames: organizationNames
     storageAccountName: storage.outputs.name
   }
 }
