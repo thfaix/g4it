@@ -44,6 +44,12 @@ param maxReplicas int = 3
 @description('Environment variables: [{ name, value } | { name, secretRef }].')
 param env array = []
 
+@description('Container entrypoint override (empty = image default).')
+param command array = []
+
+@description('Container args override, e.g. [ "start", "--import-realm" ] (empty = image default).')
+param args array = []
+
 @description('Secrets: Key Vault refs [{ name, keyVaultUrl }] or plain values [{ name, value }].')
 param secrets array = []
 
@@ -93,6 +99,8 @@ resource app 'Microsoft.App/containerApps@2024-03-01' = {
         {
           name: name
           image: image
+          command: empty(command) ? null : command
+          args: empty(args) ? null : args
           resources: {
             cpu: json(cpu)
             memory: memory

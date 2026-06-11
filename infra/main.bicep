@@ -410,33 +410,50 @@ module keycloak 'modules/container-app.bicep' = {
     image: '${acrLoginServer}/${keycloakImageRepository}:${imageTag}'
     ingressEnabled: true
     external: true
-    targetPort: 8180
+    // Official Keycloak image listens on 8080 by default (was 8180 on the Bitnami image).
+    targetPort: 8080
     cpu: '0.5'
     memory: '1Gi'
     minReplicas: 1
     maxReplicas: 1
     secrets: keycloakSecretRefs
+    // Official quay.io/keycloak image (ADR-008): native KC_* config + explicit `start`.
+    // Runs in production mode behind the ACA TLS-terminating proxy; the same Postgres
+    // `keycloak` DB carries the realm/admin/users across the Bitnami->quay.io migration.
     env: [
-      { name: 'KEYCLOAK_DATABASE_HOST', value: pgFqdn }
-      { name: 'KEYCLOAK_DATABASE_PORT', value: '5432' }
-      { name: 'KEYCLOAK_DATABASE_NAME', value: 'keycloak' }
-      { name: 'KEYCLOAK_DATABASE_USER', value: postgresAdminLogin }
-      { name: 'KEYCLOAK_DATABASE_PASSWORD', secretRef: 'db-password' }
-      { name: 'KEYCLOAK_JDBC_PARAMS', value: 'sslmode=require' }
+      { name: 'KC_DB', value: 'postgres' }
+      { name: 'KC_DB_URL_HOST', value: pgFqdn }
+      { name: 'KC_DB_URL_PORT', value: '5432' }
+      { name: 'KC_DB_URL_DATABASE', value: 'keycloak' }
+      { name: 'KC_DB_USERNAME', value: postgresAdminLogin }
+      { name: 'KC_DB_PASSWORD', secretRef: 'db-password' }
+      // Azure Postgres requires TLS; appended to the generated JDBC URL.
+      { name: 'KC_DB_URL_PROPERTIES', value: '?sslmode=require' }
       // Cap Keycloak's DB pool so it doesn't exhaust the shared Postgres max_connections (ADR-003).
       { name: 'KC_DB_POOL_MAX_SIZE', value: '10' }
       { name: 'KC_DB_POOL_INITIAL_SIZE', value: '2' }
       { name: 'KC_DB_POOL_MIN_SIZE', value: '2' }
-      { name: 'KEYCLOAK_HTTP_RELATIVE_PATH', value: '/auth/' }
-      { name: 'KEYCLOAK_HTTP_PORT', value: '8180' }
-      { name: 'KEYCLOAK_BIND_ADDRESS', value: '0.0.0.0' }
-      { name: 'KEYCLOAK_ADMIN', value: 'admin' }
-      { name: 'KEYCLOAK_ADMIN_PASSWORD', secretRef: 'keycloak-admin-password' }
-      { name: 'KEYCLOAK_PRODUCTION', value: 'true' }
-      { name: 'KEYCLOAK_PROXY', value: 'edge' }
-      { name: 'KEYCLOAK_HOSTNAME', value: 'https://${keycloakFqdn}/auth' }
-      { name: 'KEYCLOAK_EXTRA_ARGS', value: '--import-realm --spi-theme-static-max-age=-1 --spi-theme-cache-themes=false --spi-theme-cache-templates=false' }
+      // Served under /auth; edge-terminated TLS at the proxy (ADR-008, ADR-013).
+      { name: 'KC_HTTP_RELATIVE_PATH', value: '/auth' }
+      { name: 'KC_HTTP_ENABLED', value: 'true' }
+      { name: 'KC_PROXY_HEADERS', value: 'xforwarded' }
+      // Full external URL — Keycloak composes the issuer/frontend URL from this.
+      { name: 'KC_HOSTNAME', value: 'https://${keycloakFqdn}/auth' }
+      // Single replica: use the local cache instead of Infinispan/JGroups clustering.
+      { name: 'KC_CACHE', value: 'local' }
+      // First-init admin bootstrap only; ignored once the keycloak DB is populated.
+      { name: 'KC_BOOTSTRAP_ADMIN_USERNAME', value: 'admin' }
+      { name: 'KC_BOOTSTRAP_ADMIN_PASSWORD', secretRef: 'keycloak-admin-password' }
       { name: 'JAVA_OPTS_APPEND', value: '-Xms512m -Xmx512m' }
+    ]
+    // Official image entrypoint is kc.sh with no default command — start it explicitly.
+    // Non-optimized `start` re-runs the build phase at boot so KC_DB/relative-path apply.
+    args: [
+      'start'
+      '--import-realm'
+      '--spi-theme-static-max-age=-1'
+      '--spi-theme-cache-themes=false'
+      '--spi-theme-cache-templates=false'
     ]
   }
 }
