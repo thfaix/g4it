@@ -128,6 +128,7 @@ the backend reaches the NumEcoEval/Boavizta apps by their ACA app name over inte
 | `dataPlanePublicAccess` | `Disabled` | flip to `Enabled` for a quick public dev env |
 | `imageTag` / `numEcoEvalTag` | `latest` / `2-2-0` | image tags pulled from ACR (NumEcoEval pinned per [ADR-012](../docs/architecture/adr/012-numecoeval-image-sourcing.md)) |
 | `deployEcomind` | `false` | deploy the optional Ecomind AI app and wire the backend's `AIMODELCONFIGAPI_BASEURL`/`AIMODELESTIMATIONAPI_BASEURL` to it; requires importing the image with `import-external-images.sh --include-ecomind` |
+| `alertEmail` | `''` | email for the daily error-digest alert (Azure Monitor scheduled-query rule on the Log Analytics workspace, ADR-006); empty disables it. `deploy.sh` defaults it via `ALERT_EMAIL` |
 | `*CustomFqdn` | `''` | custom domains; empty = ACA default domain ([ADR-011](../docs/architecture/adr/011-domains-region-environments.md)) |
 | `postgresSku*` / `postgresHighAvailability` | Burstable / off | right-size per environment |
 

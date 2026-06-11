@@ -38,6 +38,9 @@ param keycloakAdminPassword string
 @description('Organization names the backend serves; each gets a Key Vault storage-connection-string secret. Must match the org names seeded in the DB (ADR-004/014).')
 param organizationNames array = [ 'SOPRA-STERIA-GROUP', 'SUBSCRIBER-DEMO' ]
 
+@description('Email for the daily error-digest alert (ADR-006). Empty disables it.')
+param alertEmail string = ''
+
 @allowed([ 'Enabled', 'Disabled' ])
 param dataPlanePublicAccess string = 'Disabled'
 
@@ -71,6 +74,7 @@ module stack 'main.bicep' = {
     postgresAdminPassword: postgresAdminPassword
     keycloakAdminPassword: keycloakAdminPassword
     organizationNames: organizationNames
+    alertEmail: alertEmail
     dataPlanePublicAccess: dataPlanePublicAccess
     imageTag: imageTag
     numEcoEvalTag: numEcoEvalTag

@@ -13,6 +13,7 @@ param postgresAdminPassword = readEnvironmentVariable('G4IT_PG_ADMIN_PASSWORD')
 param keycloakAdminPassword = readEnvironmentVariable('G4IT_KEYCLOAK_ADMIN_PASSWORD')
 
 param organizationNames = [ 'SOPRA-STERIA-GROUP', 'SUBSCRIBER-DEMO' ]
+param alertEmail = 'tfaix@agilepartner.net'
 param dataPlanePublicAccess = 'Disabled'
 
 param imageTag = 'latest'

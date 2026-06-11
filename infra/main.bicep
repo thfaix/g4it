@@ -56,6 +56,9 @@ param keycloakAdminPassword string
 // Organization names the backend serves; each gets a Key Vault storage-connection-string
 // secret. Must match the org names seeded in the DB or storage access 404s (ADR-004/014).
 param organizationNames array = [ 'SOPRA-STERIA-GROUP', 'SUBSCRIBER-DEMO' ]
+
+@description('Email for the daily error-digest alert (ADR-006). Empty disables it.')
+param alertEmail string = ''
 @description('Blob container name (must start with "g4it").')
 param blobContainerName string = 'g4it'
 
@@ -93,6 +96,7 @@ module monitoring 'modules/monitoring.bicep' = {
     namePrefix: '${namePrefix}-${environmentName}'
     location: location
     tags: tags
+    alertEmail: alertEmail
   }
 }
 

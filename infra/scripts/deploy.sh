@@ -56,7 +56,11 @@ PGPASS=$(reuse_or_env g4it-backend   db-password             G4IT_PG_ADMIN_PASSW
 # rather than reading the bicepparam file. Override with DEPLOY_ECOMIND=false to turn it off.
 DEPLOY_ECOMIND="${DEPLOY_ECOMIND:-true}"
 
-echo "Deploying '${DEPLOYMENT_NAME}' to ${RG} (${LOCATION}), deployEcomind=${DEPLOY_ECOMIND}..."
+# Daily error-digest alert email (template default is empty = off). Same inline-override reason
+# as deployEcomind. Set ALERT_EMAIL='' to disable, or to another address to redirect.
+ALERT_EMAIL="${ALERT_EMAIL:-tfaix@agilepartner.net}"
+
+echo "Deploying '${DEPLOYMENT_NAME}' to ${RG} (${LOCATION}), deployEcomind=${DEPLOY_ECOMIND}, alertEmail=${ALERT_EMAIL:-<none>}..."
 az deployment sub create \
   --name "${DEPLOYMENT_NAME}" \
   --location "${LOCATION}" \
@@ -64,4 +68,5 @@ az deployment sub create \
   --parameters location="${LOCATION}" \
                postgresAdminPassword="${PGPASS}" \
                keycloakAdminPassword="${KCPASS}" \
-               deployEcomind="${DEPLOY_ECOMIND}"
+               deployEcomind="${DEPLOY_ECOMIND}" \
+               alertEmail="${ALERT_EMAIL}"
